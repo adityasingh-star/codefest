@@ -10,8 +10,7 @@ import {
   Bell, 
   User,
   Send,
-  Plus,
-  Minus,
+
   Play,
   Pause,
   RotateCcw,
