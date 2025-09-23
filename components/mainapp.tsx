@@ -20,7 +20,10 @@ import {
   Star,
   BookOpen,
   Headphones,
-  Loader2
+  Loader2,
+  ArrowRight,
+  Users,
+  Sparkles
 } from 'lucide-react';
 
 // Types
@@ -48,6 +51,7 @@ interface ChatMessage {
 }
 
 const MentalHealthApp = () => {
+  const [showWelcome, setShowWelcome] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [moodEntries, setMoodEntries] = useState<MoodEntry[]>([]);
   const [sleepEntries, setSleepEntries] = useState<SleepEntry[]>([]);
@@ -115,7 +119,7 @@ const MentalHealthApp = () => {
           message: message,
           type: 'chat',
           timestamp: new Date().toISOString(),
-          userId: 'user_' + Date.now() // Simple user ID for session tracking
+          userId: 'user_' + Date.now()
         })
       });
 
@@ -125,7 +129,6 @@ const MentalHealthApp = () => {
 
       const data = await response.text();
       
-      // Handle the response from n8n/Gemini
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         text: data || "I'm sorry, I couldn't process your message right now.",
@@ -138,7 +141,6 @@ const MentalHealthApp = () => {
     } catch (error) {
       console.error('Error sending message to n8n:', error);
       
-      // Fallback error message
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         text: "I'm sorry, there was an issue connecting to the AI service. Please check your connection and try again.",
@@ -196,11 +198,10 @@ const MentalHealthApp = () => {
     setSleepEntries([newEntry, ...sleepEntries]);
   };
 
-  // Send chat message (updated to use n8n)
+  // Send chat message
   const sendMessage = async () => {
     if (!currentMessage.trim()) return;
     
-    // Add user message to chat
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       text: currentMessage,
@@ -212,7 +213,6 @@ const MentalHealthApp = () => {
     const messageToSend = currentMessage;
     setCurrentMessage('');
     
-    // Send to n8n webhook
     await sendMessageToN8n(messageToSend);
   };
 
@@ -226,11 +226,11 @@ const MentalHealthApp = () => {
   // Get mood icon
   const getMoodIcon = (mood: string) => {
     switch (mood) {
-      case 'great': return <Smile className="w-6 h-6 text-green-500" />;
-      case 'good': return <Smile className="w-6 h-6 text-blue-500" />;
-      case 'okay': return <Meh className="w-6 h-6 text-yellow-500" />;
-      case 'bad': return <Frown className="w-6 h-6 text-orange-500" />;
-      case 'terrible': return <Frown className="w-6 h-6 text-red-500" />;
+      case 'great': return <Smile className="w-6 h-6 text-emerald-600" />;
+      case 'good': return <Smile className="w-6 h-6 text-blue-600" />;
+      case 'okay': return <Meh className="w-6 h-6 text-yellow-600" />;
+      case 'bad': return <Frown className="w-6 h-6 text-orange-600" />;
+      case 'terrible': return <Frown className="w-6 h-6 text-red-600" />;
       default: return <Meh className="w-6 h-6" />;
     }
   };
@@ -245,28 +245,120 @@ const MentalHealthApp = () => {
     { id: 'resources', icon: BookOpen, label: 'Resources' }
   ];
 
+  // Welcome Screen
+  if (showWelcome) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-stone-100 via-slate-50 to-stone-200 flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-2xl w-full bg-blue-100/60 backdrop-blur-lg rounded-3xl p-12 text-center border border-blue-200/50 shadow-2xl"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring" }}
+            className="w-20 h-20 bg-gradient-to-br from-violet-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-8"
+          >
+            <Brain className="w-10 h-10 text-white" />
+          </motion.div>
+          
+          <motion.h1
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent mb-4"
+          >
+            MindWell AI
+          </motion.h1>
+          
+          <motion.p
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-xl text-stone-700 mb-8 leading-relaxed"
+          >
+            Your Personal Mental Health Companion
+            <br />
+            <span className="text-stone-600">Empowering wellness through technology</span>
+          </motion.p>
+
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="bg-violet-50/80 rounded-2xl p-6 mb-8 border border-violet-200/50"
+          >
+            <div className="flex items-center justify-center mb-4">
+              <Users className="w-6 h-6 text-violet-600 mr-2" />
+              <span className="text-lg font-semibold text-stone-700">Created by Team Quantum Innovators</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-stone-600">
+              <div className="flex items-center justify-center p-2 bg-white/50 rounded-lg">
+                <Sparkles className="w-4 h-4 mr-2 text-violet-500" />
+                <span>Aditya</span>
+              </div>
+              <div className="flex items-center justify-center p-2 bg-white/50 rounded-lg">
+                <Sparkles className="w-4 h-4 mr-2 text-violet-500" />
+                <span>Anubhab</span>
+              </div>
+              <div className="flex items-center justify-center p-2 bg-white/50 rounded-lg">
+                <Sparkles className="w-4 h-4 mr-2 text-violet-500" />
+                <span>Rohit</span>
+              </div>
+              <div className="flex items-center justify-center p-2 bg-white/50 rounded-lg">
+                <Sparkles className="w-4 h-4 mr-2 text-violet-500" />
+                <span>Kumaresh</span>
+              </div>
+              <div className="flex items-center justify-center p-2 bg-white/50 rounded-lg">
+                <Sparkles className="w-4 h-4 mr-2 text-violet-500" />
+                <span>Riya</span>
+              </div>
+              <div className="flex items-center justify-center p-2 bg-white/50 rounded-lg">
+                <Sparkles className="w-4 h-4 mr-2 text-violet-500" />
+                <span>Shreya</span>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.button
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowWelcome(false)}
+            className="px-8 py-4 bg-gradient-to-r from-emerald-400 to-emerald-500 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center space-x-2 mx-auto"
+          >
+            <span>Login into Mindwell AI</span>
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-slate-50 to-stone-200">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-white/20 px-6 py-4">
+      <header className="bg-blue-100/60 backdrop-blur-md border-b border-blue-200/50 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-violet-400 to-blue-500 rounded-xl flex items-center justify-center">
               <Brain className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
               MindWell
             </h1>
           </div>
           <div className="flex items-center space-x-4">
-            {/* Connection Status Indicator */}
             <div className={`w-3 h-3 rounded-full ${
-              connectionStatus === 'connected' ? 'bg-green-500' : 
+              connectionStatus === 'connected' ? 'bg-emerald-500' : 
               connectionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
             }`} title={`n8n connection: ${connectionStatus}`} />
-            <Bell className="w-6 h-6 text-gray-600 hover:text-purple-600 cursor-pointer" />
-            <Settings className="w-6 h-6 text-gray-600 hover:text-purple-600 cursor-pointer" />
-            <User className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full p-1 cursor-pointer" />
+            <Bell className="w-6 h-6 text-stone-600 hover:text-violet-600 cursor-pointer" />
+            <Settings className="w-6 h-6 text-stone-600 hover:text-violet-600 cursor-pointer" />
+            <User className="w-8 h-8 bg-violet-100 text-violet-600 rounded-full p-1 cursor-pointer" />
           </div>
         </div>
       </header>
@@ -281,8 +373,8 @@ const MentalHealthApp = () => {
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   activeTab === item.id
-                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
-                    : 'text-gray-600 hover:bg-white/50'
+                    ? 'bg-gradient-to-r from-violet-400 to-blue-500 text-white shadow-lg'
+                    : 'text-stone-600 hover:bg-blue-100/50'
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -304,25 +396,25 @@ const MentalHealthApp = () => {
                   className="space-y-6"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                    <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-gray-600 text-sm">Today's Mood</p>
+                          <p className="text-stone-600 text-sm">Today's Mood</p>
                           <div className="flex items-center space-x-2 mt-2">
-                            {moodEntries.length > 0 ? getMoodIcon(moodEntries[0].mood) : <Meh className="w-6 h-6 text-gray-400" />}
-                            <span className="text-xl font-semibold capitalize">
+                            {moodEntries.length > 0 ? getMoodIcon(moodEntries[0].mood) : <Meh className="w-6 h-6 text-stone-400" />}
+                            <span className="text-xl font-semibold capitalize text-stone-700">
                               {moodEntries.length > 0 ? moodEntries[0].mood : 'Not set'}
                             </span>
                           </div>
                         </div>
-                        <Heart className="w-12 h-12 text-purple-200" />
+                        <Heart className="w-12 h-12 text-violet-300" />
                       </div>
                     </div>
 
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                    <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-gray-600 text-sm">Sleep Quality</p>
+                          <p className="text-stone-600 text-sm">Sleep Quality</p>
                           <div className="flex items-center space-x-2 mt-2">
                             <div className="flex">
                               {[...Array(5)].map((_, i) => (
@@ -331,65 +423,65 @@ const MentalHealthApp = () => {
                                   className={`w-4 h-4 ${
                                     sleepEntries.length > 0 && i < sleepEntries[0].quality
                                       ? 'text-yellow-500 fill-current'
-                                      : 'text-gray-300'
+                                      : 'text-stone-300'
                                   }`}
                                 />
                               ))}
                             </div>
-                            <span className="text-xl font-semibold">
+                            <span className="text-xl font-semibold text-stone-700">
                               {sleepEntries.length > 0 ? `${sleepEntries[0].duration}h` : '0h'}
                             </span>
                           </div>
                         </div>
-                        <Moon className="w-12 h-12 text-blue-200" />
+                        <Moon className="w-12 h-12 text-blue-300" />
                       </div>
                     </div>
 
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                    <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-gray-600 text-sm">AI Connection</p>
+                          <p className="text-stone-600 text-sm">AI Connection</p>
                           <p className={`text-xl font-semibold mt-2 ${
-                            connectionStatus === 'connected' ? 'text-green-600' : 
+                            connectionStatus === 'connected' ? 'text-emerald-600' : 
                             connectionStatus === 'error' ? 'text-red-600' : 'text-yellow-600'
                           }`}>
                             {connectionStatus === 'connected' ? 'Connected' : 
                              connectionStatus === 'error' ? 'Disconnected' : 'Checking...'}
                           </p>
                         </div>
-                        <TrendingUp className="w-12 h-12 text-green-200" />
+                        <TrendingUp className="w-12 h-12 text-emerald-300" />
                       </div>
                     </div>
                   </div>
 
                   {/* Quick Actions */}
-                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                    <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
+                  <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
+                    <h3 className="text-xl font-semibold mb-4 text-stone-700">Quick Actions</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <button
                         onClick={() => setActiveTab('mood')}
-                        className="flex flex-col items-center space-y-2 p-4 rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 hover:from-pink-200 hover:to-rose-200 transition-all"
+                        className="flex flex-col items-center space-y-2 p-4 rounded-xl bg-gradient-to-br from-violet-100 to-violet-200 hover:from-violet-200 hover:to-violet-300 transition-all"
                       >
-                        <Heart className="w-8 h-8 text-pink-600" />
-                        <span className="text-sm font-medium text-pink-800">Log Mood</span>
+                        <Heart className="w-8 h-8 text-violet-600" />
+                        <span className="text-sm font-medium text-violet-800">Log Mood</span>
                       </button>
                       <button
                         onClick={() => setActiveTab('chat')}
-                        className="flex flex-col items-center space-y-2 p-4 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200 transition-all"
+                        className="flex flex-col items-center space-y-2 p-4 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300 transition-all"
                       >
                         <MessageCircle className="w-8 h-8 text-blue-600" />
                         <span className="text-sm font-medium text-blue-800">Chat with AI</span>
                       </button>
                       <button
                         onClick={() => setActiveTab('meditation')}
-                        className="flex flex-col items-center space-y-2 p-4 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 hover:from-purple-200 hover:to-indigo-200 transition-all"
+                        className="flex flex-col items-center space-y-2 p-4 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 hover:from-emerald-200 hover:to-emerald-300 transition-all"
                       >
-                        <Brain className="w-8 h-8 text-purple-600" />
-                        <span className="text-sm font-medium text-purple-800">Meditate</span>
+                        <Brain className="w-8 h-8 text-emerald-600" />
+                        <span className="text-sm font-medium text-emerald-800">Meditate</span>
                       </button>
                       <button
                         onClick={() => setActiveTab('sleep')}
-                        className="flex flex-col items-center space-y-2 p-4 rounded-xl bg-gradient-to-br from-indigo-100 to-blue-100 hover:from-indigo-200 hover:to-blue-200 transition-all"
+                        className="flex flex-col items-center space-y-2 p-4 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-200 hover:from-indigo-200 hover:to-indigo-300 transition-all"
                       >
                         <Moon className="w-8 h-8 text-indigo-600" />
                         <span className="text-sm font-medium text-indigo-800">Log Sleep</span>
@@ -399,25 +491,25 @@ const MentalHealthApp = () => {
                 </motion.div>
               )}
 
-              {/* AI Chat - Updated with n8n integration */}
+              {/* AI Chat */}
               {activeTab === 'chat' && (
                 <motion.div
                   key="chat"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20 h-[600px] flex flex-col"
+                  className="bg-blue-100/60 backdrop-blur-sm rounded-2xl border border-blue-200/50 h-[600px] flex flex-col"
                 >
-                  <div className="p-6 border-b border-white/20">
-                    <h2 className="text-2xl font-semibold">AI Support Chat</h2>
+                  <div className="p-6 border-b border-blue-200/50">
+                    <h2 className="text-2xl font-semibold text-stone-700">AI Support Chat</h2>
                     <div className="flex items-center justify-between">
-                      <p className="text-gray-600 mt-1">Powered by Gemini via n8n</p>
+                      <p className="text-stone-600 mt-1">Powered by Gemini via n8n</p>
                       <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
-                        connectionStatus === 'connected' ? 'bg-green-100 text-green-700' : 
+                        connectionStatus === 'connected' ? 'bg-emerald-100 text-emerald-700' : 
                         connectionStatus === 'error' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                       }`}>
                         <div className={`w-2 h-2 rounded-full ${
-                          connectionStatus === 'connected' ? 'bg-green-500' : 
+                          connectionStatus === 'connected' ? 'bg-emerald-500' : 
                           connectionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
                         }`} />
                         <span>{connectionStatus === 'connected' ? 'Connected' : 
@@ -435,8 +527,8 @@ const MentalHealthApp = () => {
                         <div
                           className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
                             message.isUser
-                              ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
-                              : 'bg-white/80 text-gray-800'
+                              ? 'bg-gradient-to-r from-violet-400 to-blue-500 text-white'
+                              : 'bg-blue-50/80 text-stone-800 border border-blue-200/50'
                           }`}
                         >
                           <p>{message.text}</p>
@@ -444,10 +536,9 @@ const MentalHealthApp = () => {
                       </div>
                     ))}
                     
-                    {/* Loading indicator */}
                     {isLoadingResponse && (
                       <div className="flex justify-start">
-                        <div className="bg-white/80 text-gray-800 px-4 py-2 rounded-2xl flex items-center space-x-2">
+                        <div className="bg-blue-50/80 text-stone-800 px-4 py-2 rounded-2xl flex items-center space-x-2 border border-blue-200/50">
                           <Loader2 className="w-4 h-4 animate-spin" />
                           <span>AI is thinking...</span>
                         </div>
@@ -455,7 +546,7 @@ const MentalHealthApp = () => {
                     )}
                   </div>
                   
-                  <div className="p-6 border-t border-white/20">
+                  <div className="p-6 border-t border-blue-200/50">
                     <div className="flex space-x-4">
                       <input
                         type="text"
@@ -464,12 +555,12 @@ const MentalHealthApp = () => {
                         onKeyPress={(e) => e.key === 'Enter' && !isLoadingResponse && sendMessage()}
                         placeholder="Type your message..."
                         disabled={isLoadingResponse || connectionStatus === 'error'}
-                        className="flex-1 px-4 py-3 bg-white/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+                        className="flex-1 px-4 py-3 bg-blue-50/50 border border-blue-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50 text-stone-700"
                       />
                       <button
                         onClick={sendMessage}
                         disabled={!currentMessage.trim() || isLoadingResponse || connectionStatus === 'error'}
-                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                        className="px-6 py-3 bg-gradient-to-r from-emerald-400 to-emerald-500 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                       >
                         {isLoadingResponse ? (
                           <Loader2 className="w-5 h-5 animate-spin" />
@@ -493,7 +584,6 @@ const MentalHealthApp = () => {
                 </motion.div>
               )}
 
-              {/* Rest of the components remain the same... */}
               {/* Mood Tracker */}
               {activeTab === 'mood' && (
                 <motion.div
@@ -503,27 +593,27 @@ const MentalHealthApp = () => {
                   exit={{ opacity: 0, y: -20 }}
                   className="space-y-6"
                 >
-                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                    <h2 className="text-2xl font-semibold mb-6">How are you feeling today?</h2>
+                  <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
+                    <h2 className="text-2xl font-semibold mb-6 text-stone-700">How are you feeling today?</h2>
                     
                     <MoodLogger onAddMood={addMoodEntry} />
                   </div>
 
                   {moodEntries.length > 0 && (
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                      <h3 className="text-xl font-semibold mb-4">Recent Entries</h3>
+                    <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
+                      <h3 className="text-xl font-semibold mb-4 text-stone-700">Recent Entries</h3>
                       <div className="space-y-4">
                         {moodEntries.slice(0, 5).map((entry) => (
-                          <div key={entry.id} className="flex items-center justify-between p-4 bg-white/40 rounded-xl">
+                          <div key={entry.id} className="flex items-center justify-between p-4 bg-blue-50/60 rounded-xl border border-blue-200/30">
                             <div className="flex items-center space-x-3">
                               {getMoodIcon(entry.mood)}
                               <div>
-                                <p className="font-medium capitalize">{entry.mood}</p>
-                                <p className="text-sm text-gray-600">{entry.date}</p>
+                                <p className="font-medium capitalize text-stone-700">{entry.mood}</p>
+                                <p className="text-sm text-stone-600">{entry.date}</p>
                               </div>
                             </div>
                             {entry.notes && (
-                              <p className="text-sm text-gray-600 max-w-xs truncate">{entry.notes}</p>
+                              <p className="text-sm text-stone-600 max-w-xs truncate">{entry.notes}</p>
                             )}
                           </div>
                         ))}
@@ -542,23 +632,23 @@ const MentalHealthApp = () => {
                   exit={{ opacity: 0, y: -20 }}
                   className="space-y-6"
                 >
-                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                    <h2 className="text-2xl font-semibold mb-6">Sleep Tracker</h2>
+                  <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
+                    <h2 className="text-2xl font-semibold mb-6 text-stone-700">Sleep Tracker</h2>
                     
                     <SleepLogger onAddSleep={addSleepEntry} />
                   </div>
 
                   {sleepEntries.length > 0 && (
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                      <h3 className="text-xl font-semibold mb-4">Sleep History</h3>
+                    <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
+                      <h3 className="text-xl font-semibold mb-4 text-stone-700">Sleep History</h3>
                       <div className="space-y-4">
                         {sleepEntries.slice(0, 5).map((entry) => (
-                          <div key={entry.id} className="flex items-center justify-between p-4 bg-white/40 rounded-xl">
+                          <div key={entry.id} className="flex items-center justify-between p-4 bg-blue-50/60 rounded-xl border border-blue-200/30">
                             <div className="flex items-center space-x-3">
                               <Moon className="w-6 h-6 text-blue-500" />
                               <div>
-                                <p className="font-medium">{entry.duration} hours</p>
-                                <p className="text-sm text-gray-600">{entry.date}</p>
+                                <p className="font-medium text-stone-700">{entry.duration} hours</p>
+                                <p className="text-sm text-stone-600">{entry.date}</p>
                               </div>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -567,12 +657,12 @@ const MentalHealthApp = () => {
                                   <Star
                                     key={i}
                                     className={`w-4 h-4 ${
-                                      i < entry.quality ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                                      i < entry.quality ? 'text-yellow-500 fill-current' : 'text-stone-300'
                                     }`}
                                   />
                                 ))}
                               </div>
-                              <span className="text-sm text-gray-600">
+                              <span className="text-sm text-stone-600">
                                 {entry.bedtime} - {entry.wakeTime}
                               </span>
                             </div>
@@ -593,11 +683,11 @@ const MentalHealthApp = () => {
                   exit={{ opacity: 0, y: -20 }}
                   className="space-y-6"
                 >
-                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/20 text-center">
-                    <h2 className="text-2xl font-semibold mb-6">Meditation Timer</h2>
+                  <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-8 border border-blue-200/50 text-center">
+                    <h2 className="text-2xl font-semibold mb-6 text-stone-700">Meditation Timer</h2>
                     
-                    <div className="w-48 h-48 mx-auto bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center mb-8">
-                      <div className="text-4xl font-bold text-purple-700">
+                    <div className="w-48 h-48 mx-auto bg-gradient-to-br from-violet-100 to-blue-100 rounded-full flex items-center justify-center mb-8 border border-violet-200/50">
+                      <div className="text-4xl font-bold text-violet-700">
                         {formatTime(timeRemaining)}
                       </div>
                     </div>
@@ -605,19 +695,19 @@ const MentalHealthApp = () => {
                     <div className="flex justify-center space-x-4 mb-8">
                       <button
                         onClick={() => setMeditationTime(300)}
-                        className={`px-4 py-2 rounded-lg ${meditationTime === 300 ? 'bg-purple-500 text-white' : 'bg-white/50'}`}
+                        className={`px-4 py-2 rounded-lg ${meditationTime === 300 ? 'bg-violet-500 text-white' : 'bg-blue-50/50 text-stone-700 border border-blue-200/50'}`}
                       >
                         5 min
                       </button>
                       <button
                         onClick={() => setMeditationTime(600)}
-                        className={`px-4 py-2 rounded-lg ${meditationTime === 600 ? 'bg-purple-500 text-white' : 'bg-white/50'}`}
+                        className={`px-4 py-2 rounded-lg ${meditationTime === 600 ? 'bg-violet-500 text-white' : 'bg-blue-50/50 text-stone-700 border border-blue-200/50'}`}
                       >
                         10 min
                       </button>
                       <button
                         onClick={() => setMeditationTime(900)}
-                        className={`px-4 py-2 rounded-lg ${meditationTime === 900 ? 'bg-purple-500 text-white' : 'bg-white/50'}`}
+                        className={`px-4 py-2 rounded-lg ${meditationTime === 900 ? 'bg-violet-500 text-white' : 'bg-blue-50/50 text-stone-700 border border-blue-200/50'}`}
                       >
                         15 min
                       </button>
@@ -626,7 +716,7 @@ const MentalHealthApp = () => {
                     <div className="flex justify-center space-x-4">
                       <button
                         onClick={() => setIsTimerActive(!isTimerActive)}
-                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all flex items-center space-x-2"
+                        className="px-6 py-3 bg-gradient-to-r from-emerald-400 to-emerald-500 text-white rounded-xl hover:shadow-lg transition-all flex items-center space-x-2"
                       >
                         {isTimerActive ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                         <span>{isTimerActive ? 'Pause' : 'Start'}</span>
@@ -636,7 +726,7 @@ const MentalHealthApp = () => {
                           setIsTimerActive(false);
                           setTimeRemaining(meditationTime);
                         }}
-                        className="px-6 py-3 bg-white/50 text-gray-700 rounded-xl hover:bg-white/70 transition-all flex items-center space-x-2"
+                        className="px-6 py-3 bg-blue-50/50 text-stone-700 rounded-xl hover:bg-blue-100/60 transition-all flex items-center space-x-2 border border-blue-200/50"
                       >
                         <RotateCcw className="w-5 h-5" />
                         <span>Reset</span>
@@ -645,39 +735,39 @@ const MentalHealthApp = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                      <h3 className="text-xl font-semibold mb-4">Breathing Exercise</h3>
-                      <p className="text-gray-600 mb-4">Follow the 4-7-8 breathing technique</p>
+                    <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
+                      <h3 className="text-xl font-semibold mb-4 text-stone-700">Breathing Exercise</h3>
+                      <p className="text-stone-600 mb-4">Follow the 4-7-8 breathing technique</p>
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
                           <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                          <span>Inhale for 4 counts</span>
+                          <span className="text-stone-700">Inhale for 4 counts</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                          <span>Hold for 7 counts</span>
+                          <span className="text-stone-700">Hold for 7 counts</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span>Exhale for 8 counts</span>
+                          <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                          <span className="text-stone-700">Exhale for 8 counts</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                      <h3 className="text-xl font-semibold mb-4">Guided Sessions</h3>
+                    <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
+                      <h3 className="text-xl font-semibold mb-4 text-stone-700">Guided Sessions</h3>
                       <div className="space-y-3">
-                        <button className="w-full flex items-center space-x-3 p-3 bg-white/40 rounded-xl hover:bg-white/60 transition-all">
-                          <Headphones className="w-5 h-5 text-purple-600" />
-                          <span>Stress Relief (10 min)</span>
+                        <button className="w-full flex items-center space-x-3 p-3 bg-blue-50/60 rounded-xl hover:bg-blue-100/60 transition-all border border-blue-200/30">
+                          <Headphones className="w-5 h-5 text-violet-600" />
+                          <span className="text-stone-700">Stress Relief (10 min)</span>
                         </button>
-                        <button className="w-full flex items-center space-x-3 p-3 bg-white/40 rounded-xl hover:bg-white/60 transition-all">
+                        <button className="w-full flex items-center space-x-3 p-3 bg-blue-50/60 rounded-xl hover:bg-blue-100/60 transition-all border border-blue-200/30">
                           <Headphones className="w-5 h-5 text-blue-600" />
-                          <span>Sleep Preparation (15 min)</span>
+                          <span className="text-stone-700">Sleep Preparation (15 min)</span>
                         </button>
-                        <button className="w-full flex items-center space-x-3 p-3 bg-white/40 rounded-xl hover:bg-white/60 transition-all">
-                          <Headphones className="w-5 h-5 text-green-600" />
-                          <span>Mindfulness (5 min)</span>
+                        <button className="w-full flex items-center space-x-3 p-3 bg-blue-50/60 rounded-xl hover:bg-blue-100/60 transition-all border border-blue-200/30">
+                          <Headphones className="w-5 h-5 text-emerald-600" />
+                          <span className="text-stone-700">Mindfulness (5 min)</span>
                         </button>
                       </div>
                     </div>
@@ -694,12 +784,12 @@ const MentalHealthApp = () => {
                   exit={{ opacity: 0, y: -20 }}
                   className="space-y-6"
                 >
-                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                    <h2 className="text-2xl font-semibold mb-6">Mental Health Resources</h2>
+                  <div className="bg-blue-100/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50">
+                    <h2 className="text-2xl font-semibold mb-6 text-stone-700">Mental Health Resources</h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-purple-700">Crisis Support</h3>
+                        <h3 className="text-lg font-semibold text-violet-700">Crisis Support</h3>
                         <div className="space-y-3">
                           <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
                             <h4 className="font-semibold text-red-800">National Suicide Prevention Lifeline</h4>
@@ -719,31 +809,31 @@ const MentalHealthApp = () => {
                             <h4 className="font-semibold text-blue-800">Find a Therapist</h4>
                             <p className="text-blue-600 text-sm">Psychology Today directory</p>
                           </div>
-                          <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                            <h4 className="font-semibold text-green-800">Teletherapy Options</h4>
-                            <p className="text-green-600 text-sm">BetterHelp, Talkspace, Cerebral</p>
+                          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                            <h4 className="font-semibold text-emerald-800">Teletherapy Options</h4>
+                            <p className="text-emerald-600 text-sm">BetterHelp, Talkspace, Cerebral</p>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     <div className="mt-8">
-                      <h3 className="text-lg font-semibold text-green-700 mb-4">Self-Help Resources</h3>
+                      <h3 className="text-lg font-semibold text-emerald-700 mb-4">Self-Help Resources</h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-4 bg-white/40 rounded-xl">
-                          <BookOpen className="w-8 h-8 text-purple-600 mb-3" />
-                          <h4 className="font-semibold">Articles & Guides</h4>
-                          <p className="text-sm text-gray-600 mt-2">Evidence-based mental health information</p>
+                        <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-200/30">
+                          <BookOpen className="w-8 h-8 text-violet-600 mb-3" />
+                          <h4 className="font-semibold text-stone-700">Articles & Guides</h4>
+                          <p className="text-sm text-stone-600 mt-2">Evidence-based mental health information</p>
                         </div>
-                        <div className="p-4 bg-white/40 rounded-xl">
+                        <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-200/30">
                           <Headphones className="w-8 h-8 text-blue-600 mb-3" />
-                          <h4 className="font-semibold">Podcasts</h4>
-                          <p className="text-sm text-gray-600 mt-2">Mental health podcasts and audio content</p>
+                          <h4 className="font-semibold text-stone-700">Podcasts</h4>
+                          <p className="text-sm text-stone-600 mt-2">Mental health podcasts and audio content</p>
                         </div>
-                        <div className="p-4 bg-white/40 rounded-xl">
+                        <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-200/30">
                           <Heart className="w-8 h-8 text-pink-600 mb-3" />
-                          <h4 className="font-semibold">Support Groups</h4>
-                          <p className="text-sm text-gray-600 mt-2">Connect with others facing similar challenges</p>
+                          <h4 className="font-semibold text-stone-700">Support Groups</h4>
+                          <p className="text-sm text-stone-600 mt-2">Connect with others facing similar challenges</p>
                         </div>
                       </div>
                     </div>
@@ -776,7 +866,7 @@ const MoodLogger = ({ onAddMood }: { onAddMood: (mood: MoodEntry['mood'], notes:
     { value: 'bad' as const, label: 'Bad', color: 'text-orange-500', emoji: '😞' },
     { value: 'okay' as const, label: 'Okay', color: 'text-yellow-500', emoji: '😐' },
     { value: 'good' as const, label: 'Good', color: 'text-blue-500', emoji: '😊' },
-    { value: 'great' as const, label: 'Great', color: 'text-green-500', emoji: '😄' },
+    { value: 'great' as const, label: 'Great', color: 'text-emerald-500', emoji: '😄' },
   ];
 
   const handleSubmit = () => {
@@ -796,8 +886,8 @@ const MoodLogger = ({ onAddMood }: { onAddMood: (mood: MoodEntry['mood'], notes:
             onClick={() => setSelectedMood(mood.value)}
             className={`p-4 rounded-xl transition-all ${
               selectedMood === mood.value
-                ? 'bg-white shadow-lg scale-105'
-                : 'bg-white/40 hover:bg-white/60'
+                ? 'bg-blue-50 shadow-lg scale-105 border border-violet-300'
+                : 'bg-blue-50/60 hover:bg-blue-100/60 border border-blue-200/30'
             }`}
           >
             <div className="text-3xl mb-2">{mood.emoji}</div>
@@ -807,14 +897,14 @@ const MoodLogger = ({ onAddMood }: { onAddMood: (mood: MoodEntry['mood'], notes:
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-stone-700 mb-2">
           Notes (optional)
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="How are you feeling? What happened today?"
-          className="w-full px-4 py-3 bg-white/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+          className="w-full px-4 py-3 bg-blue-50/50 border border-blue-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none text-stone-700"
           rows={3}
         />
       </div>
@@ -824,8 +914,8 @@ const MoodLogger = ({ onAddMood }: { onAddMood: (mood: MoodEntry['mood'], notes:
         disabled={!selectedMood}
         className={`w-full px-6 py-3 rounded-xl transition-all ${
           selectedMood
-            ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:shadow-lg'
-            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white hover:shadow-lg'
+            : 'bg-stone-200 text-stone-400 cursor-not-allowed'
         }`}
       >
         Save Mood Entry
@@ -853,32 +943,32 @@ const SleepLogger = ({ onAddSleep }: { onAddSleep: (bedtime: string, wakeTime: s
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-stone-700 mb-2">
             Bedtime
           </label>
           <input
             type="time"
             value={bedtime}
             onChange={(e) => setBedtime(e.target.value)}
-            className="w-full px-4 py-3 bg-white/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full px-4 py-3 bg-blue-50/50 border border-blue-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 text-stone-700"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-stone-700 mb-2">
             Wake Time
           </label>
           <input
             type="time"
             value={wakeTime}
             onChange={(e) => setWakeTime(e.target.value)}
-            className="w-full px-4 py-3 bg-white/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full px-4 py-3 bg-blue-50/50 border border-blue-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 text-stone-700"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+        <label className="block text-sm font-medium text-stone-700 mb-3">
           Sleep Quality
         </label>
         <div className="flex space-x-2">
@@ -887,7 +977,7 @@ const SleepLogger = ({ onAddSleep }: { onAddSleep: (bedtime: string, wakeTime: s
               key={star}
               onClick={() => setQuality(star)}
               className={`p-2 transition-all ${
-                star <= quality ? 'text-yellow-500' : 'text-gray-300 hover:text-yellow-400'
+                star <= quality ? 'text-yellow-500' : 'text-stone-300 hover:text-yellow-400'
               }`}
             >
               <Star className={`w-8 h-8 ${star <= quality ? 'fill-current' : ''}`} />
@@ -901,8 +991,8 @@ const SleepLogger = ({ onAddSleep }: { onAddSleep: (bedtime: string, wakeTime: s
         disabled={!bedtime || !wakeTime || quality === 0}
         className={`w-full px-6 py-3 rounded-xl transition-all ${
           bedtime && wakeTime && quality > 0
-            ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:shadow-lg'
-            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-white hover:shadow-lg'
+            : 'bg-stone-200 text-stone-400 cursor-not-allowed'
         }`}
       >
         Save Sleep Entry
