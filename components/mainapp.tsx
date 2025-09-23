@@ -516,9 +516,9 @@ const MentalHealthApp = () => {
                   className="bg-gray-800/60 backdrop-blur-sm rounded-2xl border border-purple-500/30 h-[600px] flex flex-col"
                 >
                   <div className="p-6 border-b border-purple-500/30">
-                    <h2 className="text-2xl font-semibold text-gray-200">AI Support Chat</h2>
+                    <h2 className="text-2xl font-semibold text-gray-200">Mindwell AI Support</h2>
                     <div className="flex items-center justify-between">
-                      <p className="text-gray-400 mt-1">Powered by Gemini via n8n</p>
+                      <p className="text-gray-400 mt-1">Powered by Groq via n8n</p>
                       <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
                         connectionStatus === 'connected' ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-500/30' : 
                         connectionStatus === 'error' ? 'bg-red-900/50 text-red-300 border border-red-500/30' : 'bg-yellow-900/50 text-yellow-300 border border-yellow-500/30'
