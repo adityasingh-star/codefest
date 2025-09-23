@@ -10,7 +10,6 @@ import {
   Bell, 
   User,
   Send,
-
   Play,
   Pause,
   RotateCcw,
@@ -20,7 +19,8 @@ import {
   Frown,
   Star,
   BookOpen,
-  Headphones
+  Headphones,
+  Loader2
 } from 'lucide-react';
 
 // Types
@@ -47,17 +47,6 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-// Mock AI responses
-const aiResponses = [
-  "I understand you're going through a tough time. Remember that it's okay to feel this way, and you're not alone.",
-  "That sounds challenging. What's one small thing you could do today to take care of yourself?",
-  "Thank you for sharing that with me. How are you feeling right now in this moment?",
-  "It's great that you're reaching out. What support do you feel you need most right now?",
-  "I hear you. Sometimes just talking about our feelings can help. What's been on your mind lately?",
-  "That's a positive step forward. How can we build on this feeling?",
-  "It's completely normal to have ups and downs. What usually helps you feel more grounded?"
-];
-
 const MentalHealthApp = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [moodEntries, setMoodEntries] = useState<MoodEntry[]>([]);
@@ -71,9 +60,97 @@ const MentalHealthApp = () => {
     }
   ]);
   const [currentMessage, setCurrentMessage] = useState('');
-  const [meditationTime, setMeditationTime] = useState(300); // 5 minutes default
+  const [isLoadingResponse, setIsLoadingResponse] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
+  const [meditationTime, setMeditationTime] = useState(300);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(meditationTime);
+
+  // n8n webhook URL
+  const N8N_WEBHOOK_URL = 'https://adityahisop.app.n8n.cloud/webhook/073042fb-f843-43bf-a21b-bc056a57b0fc';
+
+  // Test n8n connection on component mount
+  useEffect(() => {
+    testN8nConnection();
+  }, []);
+
+  // Test n8n webhook connection
+  const testN8nConnection = async () => {
+    try {
+      const response = await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Connection test',
+          type: 'test'
+        })
+      });
+
+      if (response.ok) {
+        setConnectionStatus('connected');
+        console.log('✅ n8n webhook connected successfully');
+      } else {
+        setConnectionStatus('error');
+        console.error('❌ n8n webhook connection failed:', response.status);
+      }
+    } catch (error) {
+      setConnectionStatus('error');
+      console.error('❌ n8n webhook connection error:', error);
+    }
+  };
+
+  // Send message to n8n webhook and handle response
+  const sendMessageToN8n = async (message: string) => {
+    try {
+      setIsLoadingResponse(true);
+      
+      const response = await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: message,
+          type: 'chat',
+          timestamp: new Date().toISOString(),
+          userId: 'user_' + Date.now() // Simple user ID for session tracking
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.text();
+      
+      // Handle the response from n8n/Gemini
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: data || "I'm sorry, I couldn't process your message right now.",
+        isUser: false,
+        timestamp: new Date()
+      };
+      
+      setChatMessages(prev => [...prev, aiMessage]);
+      
+    } catch (error) {
+      console.error('Error sending message to n8n:', error);
+      
+      // Fallback error message
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm sorry, there was an issue connecting to the AI service. Please check your connection and try again.",
+        isUser: false,
+        timestamp: new Date()
+      };
+      
+      setChatMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoadingResponse(false);
+    }
+  };
 
   // Timer logic
   useEffect(() => {
@@ -119,10 +196,11 @@ const MentalHealthApp = () => {
     setSleepEntries([newEntry, ...sleepEntries]);
   };
 
-  // Send chat message
-  const sendMessage = () => {
+  // Send chat message (updated to use n8n)
+  const sendMessage = async () => {
     if (!currentMessage.trim()) return;
     
+    // Add user message to chat
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       text: currentMessage,
@@ -131,18 +209,11 @@ const MentalHealthApp = () => {
     };
     
     setChatMessages(prev => [...prev, userMessage]);
+    const messageToSend = currentMessage;
     setCurrentMessage('');
     
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        text: aiResponses[Math.floor(Math.random() * aiResponses.length)],
-        isUser: false,
-        timestamp: new Date()
-      };
-      setChatMessages(prev => [...prev, aiMessage]);
-    }, 1000);
+    // Send to n8n webhook
+    await sendMessageToN8n(messageToSend);
   };
 
   // Format time for timer
@@ -188,6 +259,11 @@ const MentalHealthApp = () => {
             </h1>
           </div>
           <div className="flex items-center space-x-4">
+            {/* Connection Status Indicator */}
+            <div className={`w-3 h-3 rounded-full ${
+              connectionStatus === 'connected' ? 'bg-green-500' : 
+              connectionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
+            }`} title={`n8n connection: ${connectionStatus}`} />
             <Bell className="w-6 h-6 text-gray-600 hover:text-purple-600 cursor-pointer" />
             <Settings className="w-6 h-6 text-gray-600 hover:text-purple-600 cursor-pointer" />
             <User className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full p-1 cursor-pointer" />
@@ -272,8 +348,14 @@ const MentalHealthApp = () => {
                     <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-gray-600 text-sm">Streak</p>
-                          <p className="text-3xl font-bold text-purple-600 mt-2">7 days</p>
+                          <p className="text-gray-600 text-sm">AI Connection</p>
+                          <p className={`text-xl font-semibold mt-2 ${
+                            connectionStatus === 'connected' ? 'text-green-600' : 
+                            connectionStatus === 'error' ? 'text-red-600' : 'text-yellow-600'
+                          }`}>
+                            {connectionStatus === 'connected' ? 'Connected' : 
+                             connectionStatus === 'error' ? 'Disconnected' : 'Checking...'}
+                          </p>
                         </div>
                         <TrendingUp className="w-12 h-12 text-green-200" />
                       </div>
@@ -317,7 +399,7 @@ const MentalHealthApp = () => {
                 </motion.div>
               )}
 
-              {/* AI Chat */}
+              {/* AI Chat - Updated with n8n integration */}
               {activeTab === 'chat' && (
                 <motion.div
                   key="chat"
@@ -328,7 +410,20 @@ const MentalHealthApp = () => {
                 >
                   <div className="p-6 border-b border-white/20">
                     <h2 className="text-2xl font-semibold">AI Support Chat</h2>
-                    <p className="text-gray-600 mt-1">Talk to our AI companion for emotional support</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-gray-600 mt-1">Powered by Gemini via n8n</p>
+                      <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
+                        connectionStatus === 'connected' ? 'bg-green-100 text-green-700' : 
+                        connectionStatus === 'error' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        <div className={`w-2 h-2 rounded-full ${
+                          connectionStatus === 'connected' ? 'bg-green-500' : 
+                          connectionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
+                        }`} />
+                        <span>{connectionStatus === 'connected' ? 'Connected' : 
+                              connectionStatus === 'error' ? 'Disconnected' : 'Connecting...'}</span>
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -348,6 +443,16 @@ const MentalHealthApp = () => {
                         </div>
                       </div>
                     ))}
+                    
+                    {/* Loading indicator */}
+                    {isLoadingResponse && (
+                      <div className="flex justify-start">
+                        <div className="bg-white/80 text-gray-800 px-4 py-2 rounded-2xl flex items-center space-x-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>AI is thinking...</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="p-6 border-t border-white/20">
@@ -356,21 +461,39 @@ const MentalHealthApp = () => {
                         type="text"
                         value={currentMessage}
                         onChange={(e) => setCurrentMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                        onKeyPress={(e) => e.key === 'Enter' && !isLoadingResponse && sendMessage()}
                         placeholder="Type your message..."
-                        className="flex-1 px-4 py-3 bg-white/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        disabled={isLoadingResponse || connectionStatus === 'error'}
+                        className="flex-1 px-4 py-3 bg-white/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
                       />
                       <button
                         onClick={sendMessage}
-                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all"
+                        disabled={!currentMessage.trim() || isLoadingResponse || connectionStatus === 'error'}
+                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                       >
-                        <Send className="w-5 h-5" />
+                        {isLoadingResponse ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <Send className="w-5 h-5" />
+                        )}
                       </button>
                     </div>
+                    {connectionStatus === 'error' && (
+                      <div className="mt-2 text-sm text-red-600 flex items-center space-x-2">
+                        <span>⚠️ Unable to connect to AI service.</span>
+                        <button 
+                          onClick={testN8nConnection}
+                          className="underline hover:no-underline"
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
 
+              {/* Rest of the components remain the same... */}
               {/* Mood Tracker */}
               {activeTab === 'mood' && (
                 <motion.div
