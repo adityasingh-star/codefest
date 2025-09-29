@@ -31,11 +31,12 @@ import {
 
 // Types
 interface MoodEntry {
-  id: string;
-  date: string;
-  mood: 'great' | 'good' | 'okay' | 'bad' | 'terrible';
-  notes: string;
-}
+    id: string;
+      date: string;
+        mood: 'great' | 'good' | 'okay' | 'bad' | 'terrible';
+          notes: string;
+          }
+
 
 interface SleepEntry {
   id: string;
@@ -891,6 +892,54 @@ const MoodLogger = ({ onAddMood }: { onAddMood: (mood: MoodEntry['mood'], notes:
       setNotes('');
     }
   };
+  
+  const [mood, setMood] = useState('');
+
+  const moodMemes = {
+    great: 'https://www.instagram.com/animalsdoingthings/',
+    good: 'https://www.instagram.com/thedogist/',
+    okay: 'https://www.instagram.com/sarcasm_only/',
+    bad: 'https://www.instagram.com/daquan/',
+    terrible: 'https://www.instagram.com/9gag/',
+  };
+
+  const handleMoodClick = (selectedMood: keyof typeof moodMemes) => {
+    setMood(selectedMood);
+    const memeLink = moodMemes[selectedMood];
+    window.open(memeLink, '_blank'); // ✅ fixed here
+  };
+
+  return (
+    <section style={{ textAlign: 'center', padding: '2rem', backgroundColor: '#f9f9f9', color: '#333' }}>
+      <h2>How are you feeling today?</h2>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px', marginTop: '1rem' }}>
+        <button style={btnStyle} onClick={() => handleMoodClick('great')}>😄 Great</button>
+        <button style={btnStyle} onClick={() => handleMoodClick('good')}>🙂 Good</button>
+        <button style={btnStyle} onClick={() => handleMoodClick('okay')}>😐 Okay</button>
+        <button style={btnStyle} onClick={() => handleMoodClick('bad')}>😔 Bad</button>
+        <button style={btnStyle} onClick={() => handleMoodClick('terrible')}>😭 Terrible</button>
+      </div>
+      <p style={{ marginTop: '1rem', fontSize: '1rem', color: '#555' }}>
+        {mood && `You're feeling ${mood}. Opening something to cheer you up...`}
+      </p>
+    </section>
+  );
+}
+
+const btnStyle = {
+  fontSize: '1.2rem',
+  padding: '10px 20px',
+  border: 'none',
+  borderRadius: '8px',
+  backgroundColor: '#6c63ff',
+  color: 'white',
+  cursor: 'pointer',
+  transition: 'background 0.3s ease',
+};
+
+  
+  
+  
 
   return (
     <div className="space-y-6">
